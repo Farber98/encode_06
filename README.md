@@ -1,6 +1,6 @@
-# Hello, World!
+# Hello, voters!
 
-Learning unit tests with Hardhat and a simple Hello World contract.
+Learning unit tests with Hardhat and two simple contracts: Hello World and Ballot.
 
 Working with:
 
