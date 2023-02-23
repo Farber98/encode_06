@@ -98,7 +98,9 @@ describe("Ballot.sol tests", () => {
           await voteTx.wait();
           
           // tries to give rights for second time, should revert
-          expect(await ballotContract
+          // ! the await goes before the expect
+          // The logic is: you >await for it to be reverted< and not >expect it to await to be reverted<
+          await expect(ballotContract
             .connect(accounts[0]) 
             .giveRightToVote(accounts[1].address)
           ).to.be.revertedWith("The voter already voted.")
