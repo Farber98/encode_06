@@ -1,3 +1,4 @@
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { Ballot } from '../typechain-types';
@@ -6,34 +7,35 @@ const PROPOSALS = ["Proposal 1", "Proposal 2", "Proposal 3"];
 
 describe("Ballot.sol tests", () => {
     let ballotContract: Ballot;
+    let accounts: SignerWithAddress[]
     
     beforeEach( async () => {
-        // Looks in artifacts folder the bytecode for Ballot.sol
-        const ballotContractFactory = await ethers.getContractFactory("Ballot");
-        
-        // Uses the default signer to deploy the contract with arguments passed.
-        // Returns a contract which is attached to an address
-        // The contract will be deployed on that address when the transaction is mined.
-        ballotContract = await ballotContractFactory.deploy(
-            // The map() method creates a new array populated with the results of 
-            // calling a provided function on every element in the calling array.
-            PROPOSALS.map(p => ethers.utils.formatBytes32String(p))
-        ) as Ballot;
-        
-        
-        // Waits that the contract finishes deploying.
-        await ballotContract.deployed();
-
+      // Looks in artifacts folder the bytecode for Ballot.sol
+      const ballotContractFactory = await ethers.getContractFactory("Ballot");
+      
+      // Uses the default signer to deploy the contract with arguments passed.
+      // Returns a contract which is attached to an address
+      // The contract will be deployed on that address when the transaction is mined.
+      ballotContract = await ballotContractFactory.deploy(
+          // The map() method creates a new array populated with the results of 
+          // calling a provided function on every element in the calling array.
+          PROPOSALS.map(p => ethers.utils.formatBytes32String(p))
+      ) as Ballot;
+      
+      
+      // Waits that the contract finishes deploying.
+      await ballotContract.deployed();
+      
+      // Generalize getting accounts
+      accounts = await ethers.getSigners();
     })
 
     describe("when the contract is deployed", () => {
         it("sets the deployer address as chairperson", async () => {
-            const accounts = await ethers.getSigners();
             expect(await ballotContract.chairperson()).to.be.equal(accounts[0].address)
         })
 
         it("sets the voting weight for the chairperson as 1", async () => {
-            const accounts = await ethers.getSigners();
             const chairpersonVoter = await ballotContract.voters(accounts[0].address)
             expect(chairpersonVoter.weight).to.be.equal(1)
         })
@@ -60,30 +62,112 @@ describe("Ballot.sol tests", () => {
 
     describe("when the chairperson interacts with the giveRightToVote function in the contract", () =>  {
         it("gives right to vote for another address", async () => {
-          // TODO
-          throw Error("Not implemented");
+          
+          const giveRightToVoteTx = await ballotContract
+            .connect(accounts[0]) 
+            .giveRightToVote(accounts[1].address) // Give rights to accounts 1
+          
+          // Wait that transaction finishes.
+          await giveRightToVoteTx.wait();
+          
+          // Check that new voter has weight of 1.
+          const voter = await ballotContract.voters(accounts[1].address)
+          expect(voter.weight).to.be.equal(1)
+        
         });
-        it("can not give right to vote for someone that has voted", async () => {
-          // TODO
-          throw Error("Not implemented");
-        });
+
+
         it("can not give right to vote for someone that has already voting rights", async () => {
-          // TODO
-          throw Error("Not implemented");
+          // tries to give rights for second time, should revert
+          expect(await ballotContract
+            .connect(accounts[0]) 
+            .giveRightToVote(accounts[1].address)
+          ).to.be.reverted 
+        });
+
+        it("can not give right to vote for someone that has voted", async () => {
+          // gives rights for first time
+          const giveRightToVoteTx = await ballotContract
+            .connect(accounts[0]) 
+            .giveRightToVote(accounts[1].address) 
+          
+          await giveRightToVoteTx.wait();
+
+          // voter votes proposal 0
+          const voteTx = await ballotContract.connect(accounts[1]).vote(0)
+          await voteTx.wait();
+          
+          // tries to give rights for second time, should revert
+          expect(await ballotContract
+            .connect(accounts[0]) 
+            .giveRightToVote(accounts[1].address)
+          ).to.be.revertedWith("The voter already voted.")
+
         });
       });
     
       describe("when the voter interact with the vote function in the contract", () =>  {
-        // TODO
         it("should register the vote", async () => {
-          throw Error("Not implemented");
+          // chairperson gives rights to vote
+          const giveRightToVoteTx = await ballotContract
+            .connect(accounts[0]) 
+            .giveRightToVote(accounts[1].address) 
+          
+          await giveRightToVoteTx.wait();
+          
+          // Get proposal before the vote to check after.
+          const proposalToBeVoted = 0;
+          const proposalBefore = await ballotContract.proposals(proposalToBeVoted)
+
+          // voter votes proposal 0
+          const voteTx = await ballotContract.connect(accounts[1]).vote(proposalToBeVoted)
+          await voteTx.wait();
+
+          // Check that the vote is registered in voter
+          const voter = await ballotContract.voters(accounts[1].address)
+          expect(voter.voted).to.be.equal(true)
+          expect(voter.vote).to.be.equal(proposalToBeVoted)
+          
+          const proposalAfter = await ballotContract.proposals(proposalToBeVoted)
+          
+          // Check that the vote is registered in proposal
+          expect(proposalAfter.voteCount).to.be.equal(proposalBefore.voteCount.add(voter.weight))
         });
       });
     
       describe("when the voter interact with the delegate function in the contract", () =>  {
-        // TODO
         it("should transfer voting power", async () => {
-          throw Error("Not implemented");
+          // chairperson gives rights to vote to delegator 
+          const giveRightToVoteToDelegatorTx = await ballotContract
+            .connect(accounts[0]) 
+            .giveRightToVote(accounts[1].address) 
+          await giveRightToVoteToDelegatorTx.wait();
+
+          // chairperson gives rights to vote to delegated 
+          const giveRightToVoteToDelegatedTx = await ballotContract
+          .connect(accounts[0]) 
+          .giveRightToVote(accounts[2].address) 
+        await giveRightToVoteToDelegatedTx.wait();
+          
+          // Get delegated account before state.
+          const delegatedBefore = await ballotContract.voters(accounts[2].address)
+
+          // accounts[1] delegates to accounts[2]
+          const delegateVoteTx = await ballotContract
+            .connect(accounts[1])
+            .delegate(accounts[2].address)
+          
+            await delegateVoteTx.wait();
+
+          // Check that accounts[1] has voted and delegated.
+          const delegator = await ballotContract.voters(accounts[1].address)
+          expect(delegator.voted).to.be.equal(true)
+          expect(delegator.delegate).to.be.equal(accounts[2].address)
+
+          // Check that delegated gets his weight added.
+          const delegatedAfter = await ballotContract.voters(accounts[2].address)
+          expect(delegatedAfter.weight).to.be.equal(delegatedBefore.weight.add(delegator.weight))
+          
         });
       });
     
