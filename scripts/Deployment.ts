@@ -28,21 +28,17 @@ async function particularDeployment(signerWallet: ethers.Wallet, contractName:st
     
     // Waits that the contract finishes deploying and returns transaction receipt.
     const txReceipt =  await ballotContract.deployTransaction.wait();
-
-    console.log(
-        `The ${contractName} contract was deployed at address ${ballotContract.address} in the block number ${txReceipt.blockNumber}`
-    )
-
+    
     return txReceipt
 }
 
-function particularDeploymentParams(args:Array<string>):{ contract: string; argument: Array<string>} {
+function particularDeploymentParams(args:Array<string>):{ contractName: string; argument: Array<string>} {
     // Remove first 2 default arguments.
     const proposals = args.slice(2)
     // If no proposals were provided, err out.
     if (proposals.length <= 0) throw new Error("Missing arguments: proposals")
     
-    return {contract: "Ballot", argument: proposals}
+    return {contractName: "Ballot", argument: proposals}
 }
 
 function configureWallet():ethers.Wallet {
@@ -86,14 +82,18 @@ async function main() {
 
     // Get contract particular configuration
     // In this case, name of contract and arguments provided parsed.
-    const {contract, argument} = particularDeploymentParams(args)
+    const {contractName, argument} = particularDeploymentParams(args)
 
     // Pass particularDeploymentParams to particularDeployment function.
-    const txReceipt = await particularDeployment(signerWallet, contract, argument)
+    const txReceipt = await particularDeployment(signerWallet, contractName, argument)
 
     console.log(`
-        Cost in ETH: ${ethers.utils.formatEther(txReceipt.gasUsed.mul(txReceipt.effectiveGasPrice))}
+        Deployer: ${txReceipt.from}
         Tx hash: ${txReceipt.transactionHash}
+        Block: ${txReceipt.blockNumber}
+        Contract Name: ${contractName}
+        Contract Address: ${txReceipt.contractAddress}
+        Cost in ETH: ${ethers.utils.formatEther(txReceipt.gasUsed.mul(txReceipt.effectiveGasPrice))}
         Confirmations: ${txReceipt.confirmations}
     `)
 }
