@@ -32,7 +32,7 @@ async function particularDeployment(signerWallet: ethers.Wallet, contractName:st
     return txReceipt
 }
 
-function particularDeploymentParams(args:Array<string>):{ contractName: string; argument: Array<string>} {
+function getParticularDeploymentParams(args:Array<string>):{ contractName: string; argument: Array<string>} {
     // Remove first 2 default arguments.
     const proposals = args.slice(2)
     // If no proposals were provided, err out.
@@ -82,7 +82,7 @@ async function main() {
 
     // Get contract particular configuration
     // In this case, name of contract and arguments provided parsed.
-    const {contractName, argument} = particularDeploymentParams(args)
+    const {contractName, argument} = getParticularDeploymentParams(args)
 
     // Pass particularDeploymentParams to particularDeployment function.
     const txReceipt = await particularDeployment(signerWallet, contractName, argument)
