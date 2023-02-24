@@ -1,7 +1,6 @@
 import { Ballot__factory } from './../typechain-types/factories/Ballot__factory';
 import { ethers } from "ethers";
 import * as dotenv from 'dotenv';
-import { error } from "console";
 import { Ballot } from "../typechain-types";
 import { TransactionReceipt } from "@ethersproject/providers";
 dotenv.config();
@@ -11,7 +10,7 @@ async function particularDeployment(signerWallet: ethers.Wallet, contractName:st
     // Loads the bytecode from contract.
     // Picks contract factory from typechain.
     // Need to pass signer.
-    const contractFactory = new Ballot__factory(signerWallet);
+    const BallotcontractFactory = new Ballot__factory(signerWallet);
       
 
     console.log(`Deploying ${contractName} contract...`);
@@ -19,7 +18,7 @@ async function particularDeployment(signerWallet: ethers.Wallet, contractName:st
     // Uses the default signer to deploy the contract with arguments passed.
     // Returns a contract which is attached to an address
     // The contract will be deployed on that address when the transaction is mined.
-    const contract = await contractFactory.deploy(
+    const ballotContract = await BallotcontractFactory.deploy(
         // The map() method creates a new array populated with the results of 
         // calling a provided function on every element in the calling array.
         proposals.map(p => ethers.utils.formatBytes32String(p))
@@ -28,10 +27,10 @@ async function particularDeployment(signerWallet: ethers.Wallet, contractName:st
     console.log("Waiting for confirmations...")
     
     // Waits that the contract finishes deploying and returns transaction receipt.
-    const txReceipt =  await contract.deployTransaction.wait();
+    const txReceipt =  await ballotContract.deployTransaction.wait();
 
     console.log(
-        `The ${contractName} contract was deployed at address ${contract.address} in the block number ${txReceipt.blockNumber}`
+        `The ${contractName} contract was deployed at address ${ballotContract.address} in the block number ${txReceipt.blockNumber}`
     )
 
     return txReceipt
@@ -48,6 +47,7 @@ function particularDeploymentParams(args:Array<string>):{ contract: string; argu
 
 function configureWallet():ethers.Wallet {
     // Configure provider as goerli
+
     const provider = ethers.providers.getDefaultProvider("goerli", {
         // Provide personal keys from enviroment.
         alchemy: process.env.ALCHEMY_API_KEY,
@@ -56,7 +56,10 @@ function configureWallet():ethers.Wallet {
             projectId: process.env.INFURA_API_KEY,
             projectSecret: process.env.INFURA_API_SECRET, 
         }
-    })
+    }) 
+
+    //const provider = new ethers.providers.AlchemyProvider("goerli", process.env.ALCHEMY_API_KEY)
+
 
     // Get our private key from enviroment
     const privateKey = process.env.PRIVATE_KEY;
@@ -86,7 +89,13 @@ async function main() {
     const {contract, argument} = particularDeploymentParams(args)
 
     // Pass particularDeploymentParams to particularDeployment function.
-    await particularDeployment(signerWallet, contract, argument)
+    const txReceipt = await particularDeployment(signerWallet, contract, argument)
+
+    console.log(`
+        Cost in ETH: ${ethers.utils.formatEther(txReceipt.gasUsed.mul(txReceipt.effectiveGasPrice))}
+        Tx hash: ${txReceipt.transactionHash}
+        Confirmations: ${txReceipt.confirmations}
+    `)
 }
 
 
