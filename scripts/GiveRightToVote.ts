@@ -1,24 +1,4 @@
 import { Address } from 'cluster';
-// main
-
-// Import your pkey
-
-// Need to be chairperson
-
-// Assemble a signer
-
-// Receive the addres of the ballot contract as arg
-
-// Attach the factory to the address 
-
-// Receive address of the voter
-
-// Call the function to give right to vote
-
-// Pass the address of the voter as parameter
-
-
-// Main function
 
 import * as dotenv from 'dotenv';
 import { ethers } from 'ethers';
