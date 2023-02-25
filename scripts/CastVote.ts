@@ -1,5 +1,3 @@
-// Main function
-
 import * as dotenv from 'dotenv';
 import { BigNumber, ethers } from 'ethers';
 import { attachToBallot, configureWallet, getCleanArguments } from './Utils';
