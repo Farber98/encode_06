@@ -7,7 +7,7 @@ dotenv.config();
 
 async function main() {
     // Get wallet configuration for voter
-    const signerWallet = configureWallet(process.env.VOTER_PRIVATE_KEY)
+    const signerWallet = configureWallet(process.env.VOTER_THAT_VOTES_PRIVATE_KEY)
 
     // Attach ballot contract.
     const ballotContractInstance = await attachToBallot(signerWallet)

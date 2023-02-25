@@ -7,7 +7,7 @@ dotenv.config();
 
 async function main() {
     // Get wallet configuration for voter
-    const signerWallet = configureWallet(process.env.CHAIRPERSON_PRIVATE_KEY)
+    const signerWallet = configureWallet(process.env.VOTER_THAT_DELEGATES_PRIVATE_KEY)
 
     // Attach ballot contract.
     const ballotContractInstance = await attachToBallot(signerWallet)
@@ -20,10 +20,10 @@ async function main() {
     if (!ethers.utils.isAddress(addressToDelegate)) throw new Error("Provided address is not valid.")
 
     const action:string = "Delegate"
-    
+
     console.log(`Executing ${action} transaction`);
 
-    // Give right to vote to provided address
+    // Delegate vote to provided address
     const delegateTx = await ballotContractInstance.delegate(addressToDelegate)
 
     console.log(`Waiting for confirmations...`);
