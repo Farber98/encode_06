@@ -16,19 +16,18 @@ async function main() {
     const args = getCleanArguments(process.argv)
     
     // Parse proposalIndex as number
-    const proposalIndex: number = Number(args[0])
+    const proposal: number = Number(args[0])
 
     // If it's not a number, error.
-    if (isNaN(proposalIndex)) {
+    if (isNaN(proposal)) {
         throw new Error("Proposal provided was not numeric.")
     }
 
     const action:string = "Vote"
     console.log(`Executing ${action} transaction`);
 
-    console.log(proposalIndex)
     // Call function to vote. Sub 1 because of indexing in contract.
-    const voteTx = await ballotContractInstance.vote(BigNumber.from(proposalIndex - 1))
+    const voteTx = await ballotContractInstance.vote(BigNumber.from(proposal - 1))
 
     console.log(`Waiting for confirmations...`);
 
@@ -37,7 +36,7 @@ async function main() {
     console.log(`
         Action: ${action}
         Voter: ${voteTxReceipt.from}
-        Vote: Proposal ${proposalIndex}
+        Vote: Proposal ${proposal}
         Tx hash: ${voteTxReceipt.transactionHash}
         Block: ${voteTxReceipt.blockNumber}
         Contract Address: ${process.env.BALLOT_CONTRACT_ADDRESS}

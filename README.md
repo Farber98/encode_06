@@ -23,6 +23,7 @@ Put your .env file at root. It should contain:
 ```
 CHAIRPERSON_PRIVATE_KEY=
 VOTER_PRIVATE_KEY=
+NO_ROLE_PRIVATE_KEY=
 BALLOT_CONTRACT_ADDRESS=
 INFURA_API_KEY=
 INFURA_API_SECRET=
@@ -50,4 +51,12 @@ To run CastVote script, pass proposal index to vote as argument:
 
 ```
 yarn run ts-node --files ./scripts/CastVote.ts "1"
+```
+
+### Winning proposal and winner name
+
+To run WinningProposalAndWinnerName script:
+
+```
+yarn run ts-node --files ./scripts/WinningProposalAndWinnerName.ts
 ```

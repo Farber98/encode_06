@@ -1,5 +1,3 @@
-import { Address } from 'cluster';
-
 import * as dotenv from 'dotenv';
 import { ethers } from 'ethers';
 import { attachToBallot, configureWallet, getCleanArguments } from './Utils';
@@ -17,30 +15,30 @@ async function main() {
     // Get clean args [2:]
     const args = getCleanArguments(process.argv)
     
-    
     // Check if provided address is valid.
-    const addressToGiveRights: string = args[0]
-    if (!ethers.utils.isAddress(addressToGiveRights)) throw new Error("Provided address is not valid.")
+    const addressToDelegate: string = args[0]
+    if (!ethers.utils.isAddress(addressToDelegate)) throw new Error("Provided address is not valid.")
 
-    const action:string = "Give right to vote"
+    const action:string = "Delegate"
+    
     console.log(`Executing ${action} transaction`);
 
     // Give right to vote to provided address
-    const giveRightsTx = await ballotContractInstance.giveRightToVote(addressToGiveRights)
+    const delegateTx = await ballotContractInstance.delegate(addressToDelegate)
 
     console.log(`Waiting for confirmations...`);
 
-    const giveRightsTxReceipt = await giveRightsTx.wait()
+    const delegateTxReceipt = await delegateTx.wait()
 
     console.log(`
         Action: ${action}
-        Gives right to vote: ${giveRightsTxReceipt.from}
-        Gains right to vote: ${addressToGiveRights}
-        Tx hash: ${giveRightsTxReceipt.transactionHash}
-        Block: ${giveRightsTxReceipt.blockNumber}
+        Voter: ${delegateTxReceipt.from}
+        Delegates: ${addressToDelegate}
+        Tx hash: ${delegateTxReceipt.transactionHash}
+        Block: ${delegateTxReceipt.blockNumber}
         Contract Address: ${process.env.BALLOT_CONTRACT_ADDRESS}
-        Cost in ETH: ${ethers.utils.formatEther(giveRightsTxReceipt.gasUsed.mul(giveRightsTxReceipt.effectiveGasPrice))}
-        Confirmations: ${giveRightsTxReceipt.confirmations}
+        Cost in ETH: ${ethers.utils.formatEther(delegateTxReceipt.gasUsed.mul(delegateTxReceipt.effectiveGasPrice))}
+        Confirmations: ${delegateTxReceipt.confirmations}
     `)
 }
 
